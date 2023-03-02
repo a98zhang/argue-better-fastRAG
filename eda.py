@@ -32,14 +32,14 @@ def main():
     with Run().context(RunConfig(nranks=5, experiment='notebook')):
 
         config = ColBERTConfig(
-            nbits=nbits,
-            gpus=args.gpus,
-            ranks=args.ranks
+            nbits=nbits
+    
         )
         print("initialize indexer")
         indexer = Indexer(checkpoint="Intel/ColBERT-NQ", config=config)
         print("start indexing")
-        indexer.index(name=index_name, collection=collection, overwrite=True)
+        indexer.index(name=index_name, collection=collection, overwrite=True, gpus=args.gpus,
+            ranks=args.ranks)
 
     with Run().context(RunConfig(experiment='notebook')):
         print("initialize searcher")
