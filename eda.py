@@ -7,7 +7,9 @@ from colbert import Indexer, Searcher
 
 
 def main():
-
+    parser = argparse.ArgumentParser("Create an index using PLAID engine as a backend")
+    parser.add_argument("--gpus", type=int, default=0)
+    parser.add_argument("--ranks", type=int, default=1)
     dataroot = 'data'
     dataset = 'effective'
     datasplit = 'train'
@@ -27,6 +29,8 @@ def main():
 
         config = ColBERTConfig(
             nbits=nbits,
+            gpus=arg.gpus
+            ranks=arg.ranks
         )
         print("initialize indexer")
         indexer = Indexer(checkpoint="Intel/ColBERT-NQ", config=config)
