@@ -1,5 +1,7 @@
 import os
 import sys
+import argparse
+
 from colbert.infra import Run, RunConfig, ColBERTConfig
 from colbert.data import Queries, Collection
 from colbert import Indexer, Searcher
