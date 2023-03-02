@@ -29,7 +29,7 @@ def main():
 
         config = ColBERTConfig(
             nbits=nbits,
-            gpus=arg.gpus
+            gpus=arg.gpus,
             ranks=arg.ranks
         )
         print("initialize indexer")
