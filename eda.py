@@ -33,8 +33,8 @@ def main():
 
         config = ColBERTConfig(
             nbits=nbits,
-            gpus=arg.gpus,
-            ranks=arg.ranks
+            gpus=args.gpus,
+            ranks=args.ranks
         )
         print("initialize indexer")
         indexer = Indexer(checkpoint="Intel/ColBERT-NQ", config=config)
