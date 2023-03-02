@@ -29,7 +29,7 @@ def main():
             nbits=nbits,
         )
         print("initialize indexer")
-        indexer = Indexer(checkpoint='downloads/colbertv2.0', config=config)
+        indexer = Indexer(checkpoint="Intel/ColBERT-NQ", config=config)
         print("start indexing")
         indexer.index(name=index_name, collection=collection, overwrite=True)
 
