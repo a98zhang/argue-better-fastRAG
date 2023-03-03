@@ -1,6 +1,10 @@
 import os
 import sys
 import argparse
+import logging
+from pathlib import Path
+
+from fastrag.stores import PLAIDDocumentStore
 
 from colbert.infra import Run, RunConfig, ColBERTConfig
 from colbert.data import Queries, Collection
@@ -33,14 +37,13 @@ def main():
 
         config = ColBERTConfig(
             nbits=nbits, 
-            gpus=args.gpus,
+            gpus=args.gpus
     
         )
         print("initialize indexer")
         indexer = Indexer(checkpoint="Intel/ColBERT-NQ", config=config)
         print("start indexing")
-        indexer.index(name=index_name, collection=collection, overwrite=True, 
-            ranks=args.ranks)
+        indexer.index(name=index_name, collection=collection, overwrite=True)
 
     with Run().context(RunConfig(experiment='notebook')):
         print("initialize searcher")
