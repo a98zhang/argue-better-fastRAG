@@ -16,6 +16,7 @@ def main():
     parser = argparse.ArgumentParser("Create an index using PLAID engine as a backend")
     parser.add_argument("--gpus", type=int, default=0)
     parser.add_argument("--ranks", type=int, default=1)
+    parser.add_argument("--plaid", type=int, default=1)
     args = parser.parse_args()
     
     dataroot = 'data'
@@ -31,23 +32,27 @@ def main():
     f'Loaded {len(queries)} queries and {len(collection):,} passages'
 
     nbits = 2
-    gpus = 0
-    ranks = 1
+    gpus = args.gpus
+    ranks = args.ranks
     index_name = f'{dataset}.{datasplit}.{nbits}bits'
 
-    store = PLAIDDocumentStore(
-        index_path=index_name,
-        checkpoint_path="Intel/ColBERT-NQ",
-        collection_path=collection,
-        create=True,
-        nbits=nbits,
-        gpus=gpus,
-        ranks=ranks,
-        doc_maxlen=120,
-        query_maxlen=60,
-        kmeans_niters=4,
-    )
-    print('creating plaid')
+    if args.plaid:
+        
+        print('creating plaid')
+        
+        store = PLAIDDocumentStore(
+            index_path=index_name,
+            checkpoint_path="Intel/ColBERT-NQ",
+            collection_path=collection,
+            create=True,
+            nbits=nbits,
+            gpus=gpus,
+            ranks=ranks,
+            doc_maxlen=120,
+            query_maxlen=60,
+            kmeans_niters=4,
+        )
+        print('*** success!')
 
     with Run().context(RunConfig(nranks=5, experiment='notebook')):
 
