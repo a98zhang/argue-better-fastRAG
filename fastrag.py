@@ -70,7 +70,6 @@ def main():
     p.add_node(component=reader, name="Reader", inputs=["Reranker"])
 
     res = p.run(query=queries[1][6])
-    print(res)
 
     ''' 
     # store top 3 retrieved docs
@@ -90,11 +89,11 @@ def main():
                 'score': d.score,
                 'meta': d.meta 
             }
-
-    # output results into json file 
-    with open("data/effective/res.json", "w") as outfile:
-        json.dump(top3results, outfile)
     '''
+    # output results into json file 
+    with open("data/effective/res_t5.json", "w") as outfile:
+        json.dump(res, outfile)
+    
 
    
 
