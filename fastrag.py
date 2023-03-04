@@ -87,7 +87,7 @@ def main():
         model_name_or_path="google/flan-t5-base", 
         input_converter_tokenizer_max_len=16300,  
         min_length=50, 
-        max_length=250, 
+        max_length=500, 
         num_beams=4, 
         top_k=1, 
         use_gpu=False
@@ -103,9 +103,10 @@ def main():
         #results = jsonify(res, reader=False)
         results[i] = jsonify(res)
     
-    # output results into json file 
+    # output results into json file
+    json_output = json.dumps(results, indent=4) 
     with open("data/effective/res_t5.json", "w") as outfile:
-        json.dump(results, outfile)
+        outfile.write(json_output)
     
 
 if __name__ == "__main__":
