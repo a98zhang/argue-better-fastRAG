@@ -50,14 +50,22 @@ def main():
     retriever = ColBERTRetriever(store)
     p.add_node(component=retriever, name="Retriever", inputs=["Query"])
 
-    res = dict()
+    top3results = dict()
     for i in range(len(queries)):
         q = queries[1][i]
-        d = p.run(query=q)
-        res[q] = d["documents"][:3]
+        res = p.run(query=q)
+        docs = res["documents"][:3]
+        for j, d in enumerate(docs):
+            idx = (i+1, j+1)
+            top3results[idx] = {
+                'content': d.content,
+                'id': d.id,
+                'score': d.score,
+                'meta': d.meta 
+            }
     
     with open("data/effective/res.json", "w") as outfile:
-        json.dump(res, outfile)
+        json.dump(top3results, outfile)
    
 
     #from haystack.nodes import BM25Retriever, SentenceTransformersRanker
