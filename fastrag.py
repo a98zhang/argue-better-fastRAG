@@ -4,6 +4,7 @@ import argparse
 import logging
 from pathlib import Path
 import random
+import pandas as pd
 
 from fastrag.stores import PLAIDDocumentStore
 from fastrag.retrievers.colbert import ColBERTRetriever
@@ -19,8 +20,8 @@ def main():
     dataset = 'effective'
     datasplit = 'train'
 
-    queries = os.path.join(dataroot, dataset, datasplit, 'questions.search.tsv')
-    collection = os.path.join(dataroot, dataset, datasplit, 'collection.tsv')
+    queries_path = os.path.join(dataroot, dataset, datasplit, 'questions.search.tsv')
+    collection_path = os.path.join(dataroot, dataset, datasplit, 'collection.tsv')
 
     nbits = 2
     create = True if args.index else False
@@ -29,7 +30,7 @@ def main():
     store = PLAIDDocumentStore(
         index_path=index_name,
         checkpoint_path="Intel/ColBERT-NQ",
-        collection_path=collection,
+        collection_path=collection_path,
         create=create,
         nbits=nbits,
         gpus=args.gpus,
@@ -38,16 +39,18 @@ def main():
         query_maxlen=60,
         kmeans_niters=4,
     )
-
+    
+    queries = pd.read_csv(queries_path, sep='\t', header=None)
     sampled_q = queries[random.randint(0, len(queries))]
     print(sampled_q)
 
-    print('****** Query!')
-    print(store.query(sampled_q,top_k = 3))
-
     print('****** Retrieve!')
     retriever = ColBERTRetriever(store)
-    print(retriever.retrieve(sampled_q, 3))
+    res = retriever.retrieve(sampled_q, 3)
+   
+    for r in res:
+        print(r)
+
 
 
 if __name__ == "__main__":
