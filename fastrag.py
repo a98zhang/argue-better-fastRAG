@@ -41,7 +41,7 @@ def main():
     )
     
     queries = pd.read_csv(queries_path, sep='\t', header=None)
-    sampled_q = queries[random.randint(0, len(queries))]
+    sampled_q = queries[1][random.randint(0, len(queries))]
     print(sampled_q)
 
     print('****** Retrieve!')
