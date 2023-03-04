@@ -55,9 +55,12 @@ def main():
         q = queries[1][i]
         res = p.run(query=q)
         docs = res["documents"][:3]
+        top3results[i+1] = {
+            'query': q, 
+            'docs': dict()
+        }
         for j, d in enumerate(docs):
-            idx = (i+1, j+1)
-            top3results[idx] = {
+            top3results[i+1]['docs'][j] = {
                 'content': d.content,
                 'id': d.id,
                 'score': d.score,
