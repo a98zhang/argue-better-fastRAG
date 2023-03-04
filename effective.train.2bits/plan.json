@@ -49,6 +49,6 @@
     },
     "num_chunks": 1,
     "num_partitions": 8192,
-    "num_embeddings": 530091,
-    "avg_doclen": 56.840124383444135
+    "num_embeddings_est": 530091.0154266357,
+    "avg_doclen_est": 56.840126037597656
 }
