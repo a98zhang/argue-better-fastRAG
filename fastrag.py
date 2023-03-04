@@ -12,6 +12,33 @@ from haystack.nodes import SentenceTransformersRanker
 from fastrag.readers import T5Reader
 from haystack import Pipeline
 
+def jsonify(res, reader=True, k=1, j=3):
+
+    output = {
+        'query': res['query'],
+        'ans': dict(),
+        'docs': dict()
+    }
+        
+    if reader:
+        ans = res['answers'][:k]
+        for m, a in enumerate(ans):
+            output['ans'][m] = {
+                'answer': a.answer,
+                'score': a.score,
+                'context': a.context
+            }
+
+    docs = res['documents'][:j]
+    for n, d in enumerate(docs):
+        output['docs'][n] = {
+            'content': d.content,
+            'id': d.id,
+            'score': d.score,
+            'meta': d.meta 
+        }
+
+    return output
 
 
 def main():
@@ -69,35 +96,17 @@ def main():
     p.add_node(component=reranker, name="Reranker", inputs=["Retriever"])
     p.add_node(component=reader, name="Reader", inputs=["Reranker"])
 
-    res = p.run(query=queries[1][6])
-
-    ''' 
     # store top 3 retrieved docs
-    top3results = dict()
+    results = dict()
     for i in range(len(queries)):
-        q = queries[1][i]
-        res = p.run(query=q)
-        docs = res["documents"][:3]
-        top3results[i+1] = {
-            'query': q, 
-            'docs': dict()
-        }
-        for j, d in enumerate(docs):
-            top3results[i+1]['docs'][j] = {
-                'content': d.content,
-                'id': d.id,
-                'score': d.score,
-                'meta': d.meta 
-            }
-    '''
+        res = p.run(query=queries[1][i])
+        #results = jsonify(res, reader=False)
+        results[i] = jsonify(res)
+    
     # output results into json file 
     with open("data/effective/res_t5.json", "w") as outfile:
-        json.dump(res, outfile)
+        json.dump(results, outfile)
     
-
-   
-
-
 
 if __name__ == "__main__":
     main()
