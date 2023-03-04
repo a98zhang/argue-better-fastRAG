@@ -3,8 +3,10 @@ import sys
 import argparse
 import logging
 from pathlib import Path
+import random
 
 from fastrag.stores import PLAIDDocumentStore
+from fastrag.retrievers.colbert import ColBERTRetriever
 
 from colbert.infra import Run, RunConfig, ColBERTConfig
 from colbert.data import Queries, Collection
@@ -25,11 +27,6 @@ def main():
 
     queries = os.path.join(dataroot, dataset, datasplit, 'questions.search.tsv')
     collection = os.path.join(dataroot, dataset, datasplit, 'collection.tsv')
-
-    queries = Queries(path=queries)
-    collection = Collection(path=collection)
-
-    f'Loaded {len(queries)} queries and {len(collection):,} passages'
 
     nbits = 2
     gpus = args.gpus
@@ -52,23 +49,40 @@ def main():
             query_maxlen=60,
             kmeans_niters=4,
         )
-        print('*** success!')
+        print('****** Store Success!')
 
-    with Run().context(RunConfig(nranks=5, experiment='notebook')):
+        sampled_q = queries[random.randint(0, len(queries))]
+        print(sampled_q)
 
-        config = ColBERTConfig(
-            nbits=nbits, 
-            gpus=args.gpus
-    
-        )
-        print("initialize indexer")
-        indexer = Indexer(checkpoint="Intel/ColBERT-NQ", config=config)
-        print("start indexing")
-        indexer.index(name=index_name, collection=collection, overwrite=True)
+        print('****** Query!')
+        print(store.query(sampled_q,top_k = 3))
 
-    with Run().context(RunConfig(experiment='notebook')):
-        print("initialize searcher")
-        searcher = Searcher(index=index_name)
+        print('****** Retrieve!')
+        retriever = ColBERTRetriever(store)
+        print(retriever.retrieve(sampled_q, 3))
+
+
+    else: 
+        queries = Queries(path=queries)
+        collection = Collection(path=collection)
+
+        f'Loaded {len(queries)} queries and {len(collection):,} passages'
+
+        with Run().context(RunConfig(nranks=5, experiment='notebook')):
+
+            config = ColBERTConfig(
+                nbits=nbits, 
+                gpus=args.gpus
+        
+            )
+            print("initialize indexer")
+            indexer = Indexer(checkpoint="Intel/ColBERT-NQ", config=config)
+            print("start indexing")
+            indexer.index(name=index_name, collection=collection, overwrite=True)
+
+        with Run().context(RunConfig(experiment='notebook')):
+            print("initialize searcher")
+            searcher = Searcher(index=index_name)
 
 if __name__ == "__main__":
     main()
