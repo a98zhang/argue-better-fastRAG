@@ -8,7 +8,8 @@ import json
 
 from fastrag.stores import PLAIDDocumentStore
 from fastrag.retrievers.colbert import ColBERTRetriever
-
+from haystack.nodes import SentenceTransformersRanker
+from fastrag.readers import T5Reader
 from haystack import Pipeline
 
 
@@ -47,9 +48,32 @@ def main():
     )
     
     p = Pipeline()
-    retriever = ColBERTRetriever(store)
+    retriever = ColBERTRetriever(
+        store, 
+        top_k=100
+    )
+    reranker = SentenceTransformersRanker(
+        model_name_or_path="cross-encoder/ms-marco-MiniLM-L-12-v2", 
+        top_k=10
+    )
+    reader = T5Reader(
+        model_name_or_path="google/flan-t5-base", 
+        input_converter_tokenizer_max_len=16300,  
+        min_length=50, 
+        max_length=250, 
+        num_beams=4, 
+        top_k=1, 
+        use_gpu=False
+    )
     p.add_node(component=retriever, name="Retriever", inputs=["Query"])
+    p.add_node(component=reranker, name="Reranker", inputs=["Retriever"])
+    p.add_node(component=reader, name="Reader", inputs=["Reranker"])
 
+    res = p.run(query=queries[1][6])
+    print(res)
+
+    ''' 
+    # store top 3 retrieved docs
     top3results = dict()
     for i in range(len(queries)):
         q = queries[1][i]
@@ -66,17 +90,14 @@ def main():
                 'score': d.score,
                 'meta': d.meta 
             }
-    
+
+    # output results into json file 
     with open("data/effective/res.json", "w") as outfile:
         json.dump(top3results, outfile)
+    '''
+
    
 
-    #from haystack.nodes import BM25Retriever, SentenceTransformersRanker
-    #from fastrag.readers import T5Reader
-
-    #retriever = BM25Retriever(document_store=document_store, top_k=100)
-    #reranker = SentenceTransformersRanker(model_name_or_path="cross-encoder/ms-marco-MiniLM-L-12-v2", top_k=10)
-    #reader = T5Reader(model_name_or_path="google/flan-t5-base", input_converter_mode="summarization", input_converter_tokenizer_max_len=16300,  min_length=10, max_length=100, num_beams=4, top_k=1, use_gpu=False)
 
 
 if __name__ == "__main__":
