@@ -90,7 +90,7 @@ def main():
         max_length=500, 
         num_beams=4, 
         top_k=1, 
-        use_gpu=False
+        use_gpu=True
     )
     p.add_node(component=retriever, name="Retriever", inputs=["Query"])
     if args.generative:
@@ -105,7 +105,7 @@ def main():
     
     # output results into json file
     json_output = json.dumps(results, indent=4) 
-    with open("data/effective/res.json", "w") as outfile:
+    with open("data/effective/res_t5.json", "w") as outfile:
         outfile.write(json_output)
     
 
