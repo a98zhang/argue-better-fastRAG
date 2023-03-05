@@ -1,7 +1,6 @@
 import os
-import sys
+from tqdm import tqdm
 import argparse
-import logging
 from pathlib import Path
 import pandas as pd
 import json
@@ -98,7 +97,7 @@ def main():
 
     # store top 3 retrieved docs
     results = dict()
-    for i in range(len(queries)):
+    for i in tqdm(range(len(queries))):
         res = p.run(query=queries[1][i])
         #results = jsonify(res, reader=False)
         results[i] = jsonify(res)
