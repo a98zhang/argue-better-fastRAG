@@ -58,13 +58,15 @@ def main():
     dataset = 'effective'
     datasplit = 'train'
 
-    queries_path = os.path.join(dataroot, dataset, datasplit, 'questions.search.tsv')
+    #queries_path = os.path.join(dataroot, dataset, datasplit, 'questions.search.tsv')
+    queries_path = os.path.join(dataroot, dataset, datasplit, 'questions.search.sample.tsv')
     collection_path = os.path.join(dataroot, dataset, datasplit, 'collection.tsv')
 
     queries = pd.read_csv(queries_path, sep='\t', header=None)
 
     nbits = 2
     index_name = f'{dataset}.{datasplit}.{nbits}bits'
+    checkpoint_path = "Intel/ColBERT-NQ"
     if args.index:
         create = True
         checkpoint_path = "sebastian-hofstaetter/colbert-distilbert-margin_mse-T2-msmarco"
@@ -149,15 +151,15 @@ def main():
 
     # store top 3 retrieved docs
     results = dict()
+    tmstp = pd.Timestamp.now()  
     for i in tqdm(range(len(queries))):
         res = p.run(query=queries[1][i])
         results[i] = jsonify(res, reader=args.generative)
     
     # output results into json file
     json_output = json.dumps(results, indent=4) 
-    with open("data/effective/res_t5.json", "w") as outfile:
+    with open(f"data/effective/res_t5_{tmstp}.json", "w") as outfile:
         outfile.write(json_output)
-    
 
 if __name__ == "__main__":
     main()
