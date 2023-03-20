@@ -24,9 +24,9 @@ def jsonify(res, reader=1, custom=0, k=1, j=3):
     }
         
     if reader:
-	if custom:
-	    pass
         ans = res['answers'][:k]
+        if custom:
+            ans = res['results'][:k]
         for m, a in enumerate(ans):
             output['ans'][m] = {
                 'answer': a.answer,
@@ -155,7 +155,7 @@ def main():
     tmstp = pd.Timestamp.now()  
     for i in tqdm(range(len(queries))):
         res = p.run(query=queries[1][i])
-	print(res)
+        print(res)
         results[i] = jsonify(res, reader=args.generative, custom=args.custom)
     
     # output results into json file
