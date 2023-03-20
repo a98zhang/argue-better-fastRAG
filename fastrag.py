@@ -1,14 +1,18 @@
 import os
 from tqdm import tqdm
 import argparse
-from pathlib import Path
 import pandas as pd
 import json
 
 from fastrag.stores import PLAIDDocumentStore
 from fastrag.retrievers.colbert import ColBERTRetriever
 from haystack.nodes import SentenceTransformersRanker
+from haystack.nodes import PromptNode
+from haystack.nodes import PromptTemplate
+from haystack.nodes import Shaper
 from fastrag.readers import T5Reader
+from fastrag.readers.FiD import FiDReader
+from fastrag.utils import get_timing_from_pipeline
 from haystack import Pipeline
 
 def jsonify(res, reader=1, k=1, j=3):
@@ -45,7 +49,9 @@ def main():
     parser.add_argument("--gpus", type=int, default=0)
     parser.add_argument("--ranks", type=int, default=1)
     parser.add_argument("--index", type=int, default=0)
+    parser.add_argument("--checkpoint", ty)
     parser.add_argument("--generative", type=int, default=1)
+    parser.add_argument("--custom", type=int, default=1)
     args = parser.parse_args()
     
     dataroot = 'data'
@@ -58,23 +64,32 @@ def main():
     queries = pd.read_csv(queries_path, sep='\t', header=None)
 
     nbits = 2
-    create = True if args.index else False
     index_name = f'{dataset}.{datasplit}.{nbits}bits'
-    
+    if args.index:
+        create = True
+        checkpoint_path = "sebastian-hofstaetter/colbert-distilbert-margin_mse-T2-msmarco"
+        index_name = f'{dataset}.{datasplit}.{nbits}bits.msmarco'
+    else:
+        create = False
+
+    #---------------------#
+    #  create components  #
+    #---------------------#
+
+
     store = PLAIDDocumentStore(
         index_path=index_name,
-        checkpoint_path="Intel/ColBERT-NQ",
+        checkpoint_path=checkpoint_path,
         collection_path=collection_path,
         create=create,
         nbits=nbits,
         gpus=args.gpus,
         ranks=args.ranks,
-        doc_maxlen=120,
-        query_maxlen=60,
+        doc_maxlen=4099,
+        query_maxlen=4099,
         kmeans_niters=4,
     )
     
-    p = Pipeline()
     retriever = ColBERTRetriever(
         store, 
         top_k=100 if args.generative else 10
@@ -83,19 +98,54 @@ def main():
         model_name_or_path="cross-encoder/ms-marco-MiniLM-L-12-v2", 
         top_k=10
     )
+
     reader = T5Reader(
         model_name_or_path="google/flan-t5-base", 
-        input_converter_tokenizer_max_len=16300,  
-        min_length=50, 
-        max_length=500, 
+        input_converter_tokenizer_max_len=16000,  
+        min_length=100, 
+        max_length=512, 
         num_beams=4, 
         top_k=1, 
         use_gpu=True
     )
+
+    # custom reader 
+    example_generator = PromptTemplate(
+        name="eg",
+        prompt_text="""Give a better example for this ineffective argument. The example generated should reference similar effective arguments 
+               \n\n Similar effective arguments: $texts \n\nIneffective argument:$query \n\n Answer:"""
+    )
+    prompt_node = PromptNode(model_name_or_path="google/flan-t5-base", default_prompt_template=example_generator)
+
+    # shaper
+    shaper = Shaper(func="join_documents", inputs={"documents": "documents"}, outputs=["texts"])
+
+    # reader = FiDReader(
+    #     input_converter_tokenizer_max_len=250,
+    #     max_length=20,
+    #     model_name_or_path="path/to/fid",
+    #     use_gpu=True
+    # )
+
+    #--------------------#
+    #   build pipeline   #
+    #--------------------#
+
+    p = Pipeline()
+
     p.add_node(component=retriever, name="Retriever", inputs=["Query"])
     if args.generative:
         p.add_node(component=reranker, name="Reranker", inputs=["Retriever"])
-        p.add_node(component=reader, name="Reader", inputs=["Reranker"])
+        if args.custom:
+            p.add_node(component=shaper, name="Shaper", inputs=["Reranker"])
+            p.add_node(component=prompt_node, name="prompt_node", inputs=["Shaper"])
+        else:
+            p.add_node(component=reader, name="Reader", inputs=["Reranker"])
+
+
+    #------------------#
+    #   run pipeline   #
+    #------------------#
 
     # store top 3 retrieved docs
     results = dict()
