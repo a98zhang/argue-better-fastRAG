@@ -15,7 +15,7 @@ from fastrag.readers.FiD import FiDReader
 from fastrag.utils import get_timing_from_pipeline
 from haystack import Pipeline
 
-def jsonify(res, reader=1, k=1, j=3):
+def jsonify(res, reader=1, custom=0, k=1, j=3):
 
     output = {
         'query': res['query'],
@@ -24,6 +24,8 @@ def jsonify(res, reader=1, k=1, j=3):
     }
         
     if reader:
+	if custom:
+	    pass
         ans = res['answers'][:k]
         for m, a in enumerate(ans):
             output['ans'][m] = {
@@ -49,7 +51,6 @@ def main():
     parser.add_argument("--gpus", type=int, default=0)
     parser.add_argument("--ranks", type=int, default=1)
     parser.add_argument("--index", type=int, default=0)
-    parser.add_argument("--checkpoint", ty)
     parser.add_argument("--generative", type=int, default=1)
     parser.add_argument("--custom", type=int, default=1)
     args = parser.parse_args()
@@ -154,7 +155,8 @@ def main():
     tmstp = pd.Timestamp.now()  
     for i in tqdm(range(len(queries))):
         res = p.run(query=queries[1][i])
-        results[i] = jsonify(res, reader=args.generative)
+	print(res)
+        results[i] = jsonify(res, reader=args.generative, custom=args.custom)
     
     # output results into json file
     json_output = json.dumps(results, indent=4) 
