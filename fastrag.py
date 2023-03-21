@@ -68,7 +68,7 @@ def main():
     datasplit = 'train'
 
     #queries_path = os.path.join(dataroot, dataset, datasplit, 'questions.search.tsv')
-    queries_path = os.path.join(dataroot, dataset, datasplit, 'questions.search.sample.tsv')
+    queries_path = os.path.join(dataroot, dataset, datasplit, 'questions.search.test.tsv')
     collection_path = os.path.join(dataroot, dataset, datasplit, 'collection.tsv')
 
     queries = pd.read_csv(queries_path, sep='\t', header=None)
