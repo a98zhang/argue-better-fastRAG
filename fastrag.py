@@ -23,10 +23,15 @@ def jsonify(res, reader=1, custom=0, k=1, j=3):
         'docs': dict()
     }
         
-    if reader:
+    if custom:
+        output['ans']["0"] = {
+            'answer': res['results'],
+            'score': NULL, 
+            'context': NULL
+        }
+
+    if reader & (not custom):
         ans = res['answers'][:k]
-        if custom:
-            ans = res['results'][:k]
         for m, a in enumerate(ans):
             output['ans'][m] = {
                 'answer': a.answer,
@@ -35,6 +40,9 @@ def jsonify(res, reader=1, custom=0, k=1, j=3):
             }
 
     docs = res['documents'][:j]
+    if custom:
+        docs = res['texts'][:j]
+
     for n, d in enumerate(docs):
         output['docs'][n] = {
             'content': d.content,
