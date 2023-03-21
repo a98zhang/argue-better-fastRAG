@@ -26,8 +26,8 @@ def jsonify(res, reader=1, custom=0, k=1, j=3):
     if custom:
         output['ans']["0"] = {
             'answer': res['results'],
-            'score': NULL, 
-            'context': NULL
+            'score': '', 
+            'context': ''
         }
 
     if reader & (not custom):
