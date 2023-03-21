@@ -126,7 +126,7 @@ def main():
         prompt_text="""Give a better example for this ineffective argument. The example generated should reference similar effective arguments 
                \n\n Similar effective arguments: $texts \n\nIneffective argument:$query \n\n Answer:"""
     )
-    prompt_node = PromptNode(model_name_or_path="google/flan-t5-base", default_prompt_template=example_generator)
+    prompt_node = PromptNode(model_name_or_path="google/flan-t5-base", default_prompt_template=example_generator, max_length=1000)
 
     # shaper
     shaper = Shaper(func="join_documents", inputs={"documents": "documents"}, outputs=["texts"])
